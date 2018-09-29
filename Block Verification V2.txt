@@ -1,0 +1,57 @@
+def swap_endianess(h):
+    if h[:2] == "0x":
+        h = h[2:]  # If the hash starts with "0x", remove it
+    return str.join("", [h[i:i+2] for i in range(len(h), -1, -2)])
+
+
+
+version = 0x20000000
+previous_block_hash = "00000000000000000008afa8857f5a3a90d4980459d10c0e5704fe20285f81aa"
+merkle_root = "21accec23fe2e02abc1fba3d35d883524b8d590860982ab50df95dcb3511d3de"
+time = "2018-09-29 08:48:45"
+bits = 388454943
+nonce = 2509375125
+
+
+
+version = int(version)
+version = hex(version)
+version = swap_endianess(version)
+
+previous_block_hash = swap_endianess(previous_block_hash)
+
+
+merkle_root = swap_endianess(merkle_root)
+
+
+from dateutil import parser
+datetime_object = parser.parse(time)
+
+from datetime import datetime
+timestamp_as_int = int((datetime_object - datetime(1970, 1, 1)).total_seconds())
+
+time = swap_endianess("{0:#0{1}x}".format(timestamp_as_int,8))
+
+
+bits = swap_endianess("{0:#0{1}x}".format(bits,8))
+
+nonce = swap_endianess("{0:#0{1}x}".format(nonce,8))
+
+version = version.encode("ascii")
+previous_block_hash = previous_block_hash.encode("ascii")
+merkle_root = merkle_root.encode("ascii")
+time = time.encode("ascii")
+bits = bits.encode("ascii")
+nonce = nonce.encode("ascii")
+
+header_as_bytes = version + previous_block_hash + merkle_root + time + bits + nonce
+
+import hashlib
+import binascii
+
+block = binascii.unhexlify(header_as_bytes)
+
+round1 = hashlib.sha256(block).digest()
+round2 = hashlib.sha256(round1).hexdigest()
+verify = swap_endianess(round2)
+print (verify)
